@@ -132,6 +132,7 @@ pub struct Config {
     pub(crate) coredump_on_trap: bool,
     pub(crate) macos_use_mach_ports: bool,
     pub(crate) detect_host_feature: Option<fn(&str) -> Option<bool>>,
+    pub(crate) skip_memory_init: Arc<std::sync::atomic::AtomicBool>,
 }
 
 #[derive(Default, Clone)]
@@ -253,6 +254,7 @@ impl Config {
             detect_host_feature: Some(detect_host_feature),
             #[cfg(not(feature = "std"))]
             detect_host_feature: None,
+            skip_memory_init: Arc::new(std::sync::atomic::AtomicBool::new(false)),
         };
         #[cfg(any(feature = "cranelift", feature = "winch"))]
         {
@@ -925,6 +927,13 @@ impl Config {
     pub fn wasm_bulk_memory(&mut self, enable: bool) -> &mut Self {
         self.features.set(WasmFeatures::BULK_MEMORY, enable);
         self
+    }
+
+    /// Configures whether to skip memory initialization during instance creation.
+    pub fn skip_memory_init(&self, enable: bool) -> &Arc<std::sync::atomic::AtomicBool> {
+        self.skip_memory_init
+            .store(enable, std::sync::atomic::Ordering::Relaxed);
+        &self.skip_memory_init
     }
 
     /// Configures whether the WebAssembly multi-value [proposal] will

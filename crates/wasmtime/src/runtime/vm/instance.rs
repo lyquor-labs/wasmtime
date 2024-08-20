@@ -1501,8 +1501,8 @@ impl InstanceHandle {
     /// Failure of this function means that the instance still must persist
     /// within the store since failure may indicate partial failure, or some
     /// state could be referenced by other instances.
-    pub fn initialize(&mut self, module: &Module, is_bulk_memory: bool) -> Result<()> {
-        allocator::initialize_instance(self.instance_mut(), module, is_bulk_memory)
+    pub fn initialize(&mut self, module: &Module, is_bulk_memory: bool, skip_memory: bool) -> Result<()> {
+        allocator::initialize_instance(self.instance_mut(), module, is_bulk_memory, skip_memory)
     }
 
     /// Attempts to convert from the host `addr` specified to a WebAssembly
