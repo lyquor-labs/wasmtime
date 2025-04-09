@@ -36,6 +36,20 @@ impl SharedMemory {
         Self::wrap(&plan, Box::new(mmap_memory), plan.memory)
     }
 
+    /// Create shared memory with custom memory creator.
+    pub fn new_with_host_memory(
+        plan: MemoryPlan,
+        creator: Arc<dyn crate::runtime::MemoryCreator>,
+    ) -> Result<Self> {
+        let creator = crate::runtime::trampoline::MemoryCreatorProxy(creator);
+        use crate::runtime::vm::RuntimeMemoryCreator;
+        Self::wrap(
+            &plan,
+            creator.new_memory(&plan, 0, None, None).unwrap(),
+            plan.memory,
+        )
+    }
+
     /// Wrap an existing [Memory] with the locking provided by a [SharedMemory].
     pub fn wrap(
         plan: &MemoryPlan,
