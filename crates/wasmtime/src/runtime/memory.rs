@@ -822,6 +822,30 @@ impl SharedMemory {
         })
     }
 
+    /// Create shared memory with custom memory creator.
+    #[cfg(feature = "threads")]
+    pub fn new_with_host_memory(
+        engine: &Engine,
+        ty: MemoryType,
+        creator: std::sync::Arc<dyn crate::runtime::MemoryCreator>,
+    ) -> Result<Self> {
+        if !ty.is_shared() {
+            bail!("shared memory must have the `shared` flag enabled on its memory type")
+        }
+        debug_assert!(ty.maximum().is_some());
+
+        let tunables = engine.tunables();
+        let ty = ty.wasmtime_memory();
+        let page_size_log2 = ty.page_size_log2;
+        let memory = crate::runtime::vm::SharedMemory::new_with_host_memory(ty, tunables, creator)?;
+
+        Ok(Self {
+            vm: memory,
+            engine: engine.clone(),
+            page_size_log2,
+        })
+    }
+
     /// Return the type of the shared memory.
     pub fn ty(&self) -> MemoryType {
         MemoryType::from_wasmtime_memory(&self.vm.ty())

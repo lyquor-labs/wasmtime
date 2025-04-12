@@ -834,6 +834,7 @@ pub(super) fn initialize_instance(
     instance: &mut Instance,
     module: &Module,
     is_bulk_memory: bool,
+    skip_memory: bool,
 ) -> Result<()> {
     // If bulk memory is not enabled, bounds check the data and element segments before
     // making any changes. With bulk memory enabled, initializers are processed
@@ -848,7 +849,9 @@ pub(super) fn initialize_instance(
 
     initialize_globals(store, &mut context, &mut const_evaluator, module)?;
     initialize_tables(store, &mut context, &mut const_evaluator, module)?;
-    initialize_memories(store, &mut context, &mut const_evaluator, &module)?;
+    if !skip_memory {
+        initialize_memories(store, &mut context, &mut const_evaluator, &module)?;
+    }
 
     Ok(())
 }

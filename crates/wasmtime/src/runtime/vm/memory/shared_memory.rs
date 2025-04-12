@@ -39,6 +39,25 @@ impl SharedMemory {
         )
     }
 
+    /// Create shared memory with custom memory creator.
+    pub fn new_with_host_memory(
+        ty: &wasmtime_environ::Memory,
+        tunables: &Tunables,
+        creator: Arc<dyn crate::runtime::MemoryCreator>,
+    ) -> Result<Self> {
+        let creator = crate::runtime::trampoline::MemoryCreatorProxy(creator);
+        use crate::runtime::vm::RuntimeMemoryCreator;
+        Self::wrap(
+            ty,
+            LocalMemory::new(
+                ty,
+                tunables,
+                creator.new_memory(ty, tunables, 0, None)?,
+                None,
+            )?,
+        )
+    }
+
     /// Wrap an existing [Memory] with the locking provided by a [SharedMemory].
     pub fn wrap(ty: &wasmtime_environ::Memory, mut memory: LocalMemory) -> Result<Self> {
         if !ty.shared {

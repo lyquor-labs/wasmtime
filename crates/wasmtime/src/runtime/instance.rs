@@ -345,7 +345,16 @@ impl Instance {
             .engine()
             .features()
             .contains(WasmFeatures::BULK_MEMORY);
-        instance_handle.initialize(store, compiled_module.module(), bulk_memory)?;
+        instance_handle.initialize(
+            store,
+            compiled_module.module(),
+            bulk_memory,
+            store
+                .engine()
+                .config()
+                .skip_memory_init
+                .load(std::sync::atomic::Ordering::Relaxed),
+        )?;
 
         Ok((instance, compiled_module.module().start_func))
     }

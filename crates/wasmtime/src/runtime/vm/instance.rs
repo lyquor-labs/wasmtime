@@ -1732,8 +1732,15 @@ impl InstanceHandle {
         store: &mut StoreOpaque,
         module: &Module,
         is_bulk_memory: bool,
+        skip_memory: bool,
     ) -> Result<()> {
-        allocator::initialize_instance(store, self.instance_mut(), module, is_bulk_memory)
+        allocator::initialize_instance(
+            store,
+            self.instance_mut(),
+            module,
+            is_bulk_memory,
+            skip_memory,
+        )
     }
 
     /// Attempts to convert from the host `addr` specified to a WebAssembly
