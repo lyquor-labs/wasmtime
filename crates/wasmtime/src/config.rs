@@ -165,6 +165,7 @@ pub struct Config {
     pub(crate) detect_host_feature: Option<fn(&str) -> Option<bool>>,
     pub(crate) x86_float_abi_ok: Option<bool>,
     pub(crate) shared_memory: bool,
+    pub(crate) skip_memory_init: Arc<std::sync::atomic::AtomicBool>,
 }
 
 /// User-provided configuration for the compiler.
@@ -275,6 +276,7 @@ impl Config {
             detect_host_feature: None,
             x86_float_abi_ok: None,
             shared_memory: false,
+            skip_memory_init: Arc::new(std::sync::atomic::AtomicBool::new(false)),
         };
         ret.wasm_backtrace_details(WasmBacktraceDetails::Environment);
         ret
@@ -2996,6 +2998,13 @@ impl Config {
     pub fn shared_memory(&mut self, enable: bool) -> &mut Self {
         self.shared_memory = enable;
         self
+    }
+
+    /// Configures whether to skip memory initialization during instance creation.
+    pub fn skip_memory_init(&self, enable: bool) -> &Arc<std::sync::atomic::AtomicBool> {
+        self.skip_memory_init
+            .store(enable, std::sync::atomic::Ordering::Relaxed);
+        &self.skip_memory_init
     }
 }
 

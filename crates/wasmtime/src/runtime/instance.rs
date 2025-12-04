@@ -356,7 +356,19 @@ impl Instance {
             .features()
             .contains(WasmFeatures::BULK_MEMORY);
 
-        vm::initialize_instance(store, limiter, id, compiled_module.module(), bulk_memory).await?;
+        vm::initialize_instance(
+            store,
+            limiter,
+            id,
+            compiled_module.module(),
+            bulk_memory,
+            store
+                .engine()
+                .config()
+                .skip_memory_init
+                .load(std::sync::atomic::Ordering::Relaxed),
+        )
+        .await?;
 
         Ok((instance, compiled_module.module().start_func))
     }

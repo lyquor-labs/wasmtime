@@ -805,6 +805,7 @@ pub async fn initialize_instance(
     instance: InstanceId,
     module: &Module,
     is_bulk_memory: bool,
+    skip_memory: bool,
 ) -> Result<()> {
     // If bulk memory is not enabled, bounds check the data and element segments before
     // making any changes. With bulk memory enabled, initializers are processed
@@ -833,7 +834,10 @@ pub async fn initialize_instance(
         module,
     )
     .await?;
-    initialize_memories(store, &mut context, &mut const_evaluator, &module)?;
+
+    if !skip_memory {
+        initialize_memories(store, &mut context, &mut const_evaluator, &module)?;
+    }
 
     Ok(())
 }
