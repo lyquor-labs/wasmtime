@@ -164,6 +164,7 @@ pub struct Config {
     pub(crate) macos_use_mach_ports: bool,
     pub(crate) detect_host_feature: Option<fn(&str) -> Option<bool>>,
     pub(crate) x86_float_abi_ok: Option<bool>,
+    pub(crate) skip_memory_init: Arc<std::sync::atomic::AtomicBool>,
 }
 
 /// User-provided configuration for the compiler.
@@ -273,6 +274,7 @@ impl Config {
             #[cfg(not(feature = "std"))]
             detect_host_feature: None,
             x86_float_abi_ok: None,
+            skip_memory_init: Arc::new(std::sync::atomic::AtomicBool::new(false)),
         };
         #[cfg(any(feature = "cranelift", feature = "winch"))]
         {
@@ -2868,6 +2870,13 @@ impl Config {
     pub unsafe fn x86_float_abi_ok(&mut self, enable: bool) -> &mut Self {
         self.x86_float_abi_ok = Some(enable);
         self
+    }
+
+    /// Configures whether to skip memory initialization during instance creation.
+    pub fn skip_memory_init(&self, enable: bool) -> &Arc<std::sync::atomic::AtomicBool> {
+        self.skip_memory_init
+            .store(enable, std::sync::atomic::Ordering::Relaxed);
+        &self.skip_memory_init
     }
 }
 
