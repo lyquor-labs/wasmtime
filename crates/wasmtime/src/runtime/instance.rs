@@ -360,6 +360,7 @@ impl Instance {
             compiled_module.module(),
             bulk_memory,
             asyncness,
+            store.skip_memory_init(),
         )
         .await?;
 

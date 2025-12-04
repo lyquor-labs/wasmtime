@@ -515,6 +515,7 @@ pub struct StoreOpaque {
     // until the reserve is empty.
     fuel_reserve: u64,
     pub(crate) fuel_yield_interval: Option<NonZeroU64>,
+    skip_memory_init: bool,
     /// Indexed data within this `Store`, used to store information about
     /// globals, functions, memories, etc.
     store_data: StoreData,
@@ -767,6 +768,7 @@ impl<T> Store<T> {
             async_state: Default::default(),
             fuel_reserve: 0,
             fuel_yield_interval: None,
+            skip_memory_init: false,
             store_data,
             traitobj: StorePtr(None),
             default_caller_vmctx: SendSyncPtr::new(NonNull::dangling()),
@@ -1048,6 +1050,11 @@ impl<T> Store<T> {
     /// [`Config::consume_fuel`](crate::Config::consume_fuel).
     pub fn set_fuel(&mut self, fuel: u64) -> Result<()> {
         self.inner.set_fuel(fuel)
+    }
+
+    /// Configures whether to skip memory initialization during instance creation.
+    pub fn set_skip_memory_init(&mut self, enable: bool) {
+        self.inner.set_skip_memory_init(enable)
     }
 
     /// Configures a [`Store`] to yield execution of async WebAssembly code
@@ -1658,6 +1665,16 @@ impl StoreOpaque {
     #[inline]
     pub fn engine(&self) -> &Engine {
         &self.engine
+    }
+
+    #[inline]
+    pub fn set_skip_memory_init(&mut self, enable: bool) {
+        self.skip_memory_init = enable;
+    }
+
+    #[inline]
+    pub fn skip_memory_init(&self) -> bool {
+        self.skip_memory_init
     }
 
     #[inline]
