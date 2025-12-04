@@ -814,6 +814,7 @@ pub async fn initialize_instance(
     module: &Module,
     is_bulk_memory: bool,
     asyncness: Asyncness,
+    skip_memory: bool,
 ) -> Result<()> {
     let mut context = ConstEvalContext::new(instance, asyncness);
     let mut const_evaluator = ConstExprEvaluator::default();
@@ -842,7 +843,10 @@ pub async fn initialize_instance(
         module,
     )
     .await?;
-    initialize_memories(store, &mut context, &mut const_evaluator, &module)?;
+
+    if !skip_memory {
+        initialize_memories(store, &mut context, &mut const_evaluator, &module)?;
+    }
 
     Ok(())
 }

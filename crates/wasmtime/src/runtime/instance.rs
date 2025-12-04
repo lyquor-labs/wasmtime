@@ -359,6 +359,11 @@ impl Instance {
             compiled_module.module(),
             bulk_memory,
             asyncness,
+            store
+                .engine()
+                .config()
+                .skip_memory_init
+                .load(std::sync::atomic::Ordering::Relaxed),
         )
         .await?;
 
