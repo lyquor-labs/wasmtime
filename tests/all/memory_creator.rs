@@ -151,6 +151,36 @@ mod not_for_windows {
     }
 
     #[test]
+    #[cfg(target_pointer_width = "64")]
+    fn host_shared_memory() -> wasmtime::Result<()> {
+        let mem_creator = Arc::new(CustomMemoryCreator::new());
+        let mut config = Config::new();
+        config
+            .wasm_threads(true)
+            .shared_memory(true)
+            .memory_reservation(0)
+            .memory_guard_size(0);
+        let engine = Engine::new(&config)?;
+        let memory = SharedMemory::new_with_host_memory(
+            &engine,
+            MemoryType::shared(1, 2),
+            mem_creator.clone(),
+        )?;
+
+        assert_eq!(memory.size(), 1);
+        assert_eq!(memory.ty().maximum(), Some(2));
+        assert_eq!(*mem_creator.num_created_memories.lock().unwrap(), 1);
+        assert_eq!(
+            *mem_creator.num_total_bytes.lock().unwrap(),
+            wasmtime_environ::Memory::DEFAULT_PAGE_SIZE as usize
+        );
+
+        drop(memory);
+        assert_eq!(*mem_creator.num_total_bytes.lock().unwrap(), 0);
+        Ok(())
+    }
+
+    #[test]
     fn host_memory_grow() -> wasmtime::Result<()> {
         let (mut store, mem_creator) = config();
         let module = Module::new(

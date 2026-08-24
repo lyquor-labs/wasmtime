@@ -50,6 +50,26 @@ impl SharedMemory {
         )
     }
 
+    /// Create shared memory with custom memory creator.
+    pub fn new_with_host_memory(
+        engine: &Engine,
+        ty: &wasmtime_environ::Memory,
+        creator: Arc<dyn crate::runtime::MemoryCreator>,
+    ) -> Result<Self> {
+        let creator = crate::runtime::trampoline::MemoryCreatorProxy(creator);
+        match vm::assert_ready(Memory::new_dynamic(
+            ty,
+            engine,
+            &creator,
+            None,
+            None,
+            wasmtime_environ::MemoryKind::LinearMemory,
+        ))? {
+            Memory::Shared(memory) => Ok(memory),
+            Memory::Local(_) => unreachable!("shared memory type created local memory"),
+        }
+    }
+
     /// Wrap an existing [Memory] with the locking provided by a [SharedMemory].
     pub fn wrap(
         engine: &Engine,
